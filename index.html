@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Digital Trading Floor</title>
+<style>
+:root{--bg:#0a1428;--panel:#112240;--line:#1f3a66;--text:#e6f1ff;--mute:#8fa6c8;--cy:#22d3ee;--up:#22c55e;--dn:#ef4444;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:12px 14px 6px}
+h1{font-size:18px;margin:0;color:var(--cy)}
+.sub{color:var(--mute);font-size:12px}
+.badge{display:inline-block;background:#164e63;color:#a5f3fc;border:1px solid var(--cy);border-radius:99px;padding:2px 10px;font-size:11px;font-weight:700;margin-top:6px}
+.tabs{display:flex;gap:8px;padding:8px 14px}
+button{font:inherit;color:var(--text);cursor:pointer}
+.tab{flex:1;min-height:48px;border-radius:12px;border:1px solid var(--line);background:var(--panel);font-weight:600}
+.tab.on{background:var(--cy);color:#04202b;border-color:var(--cy)}
+main{padding:6px 14px 14px}
+.hint{display:none;color:var(--mute);font-size:12px;margin:0 0 8px}
+@media (orientation:portrait){.hint{display:block}}
+.grid{display:grid;gap:12px;grid-template-columns:1fr}
+@media (min-width:640px){.grid{grid-template-columns:1fr 1fr}.wide{grid-column:1/-1}}
+@media (min-width:900px){.grid{grid-template-columns:1.2fr 1.4fr 1fr}.wide{grid-column:auto}.span2{grid-column:span 2}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;min-width:0}
+.card h2{margin:0 0 8px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.up{color:var(--up)}.dn{color:var(--dn)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.sym{font-weight:700}.nm{color:var(--mute);font-size:12px}
+.num{font-variant-numeric:tabular-nums;text-align:right}
+.idx{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.idx div{background:#0d1c38;border-radius:10px;padding:8px}
+.idx b{display:block;font-size:17px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px}
+.chip{flex:none;min-height:40px;padding:0 12px;border-radius:99px;border:1px solid var(--line);background:#0d1c38;font-size:13px}
+.chip.on{border-color:var(--cy);color:var(--cy)}
+svg{width:100%;height:150px;display:block;background:#0d1c38;border-radius:10px}
+.feed{font-size:13px;color:var(--mute)}
+.ctl{display:flex;gap:8px;margin:10px 0}
+.step{width:56px;min-height:56px;border-radius:12px;border:1px solid var(--line);background:#0d1c38;font-size:24px}
+input{flex:1;min-width:0;min-height:56px;border-radius:12px;border:1px solid var(--line);background:#0d1c38;color:var(--text);font-size:20px;text-align:center}
+.buy,.sell{flex:1;min-height:60px;border:0;border-radius:12px;font-size:18px;font-weight:800;color:#04130a}
+.buy{background:var(--up)}.sell{background:var(--dn);color:#fff}
+.reset{width:100%;min-height:52px;border-radius:12px;border:1px solid var(--dn);background:transparent;color:#fecaca;font-weight:700}
+.pick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pick button{min-height:56px;border-radius:12px;border:1px solid var(--line);background:#0d1c38;text-align:left;padding:6px 10px}
+.pick button.on{border-color:var(--cy);box-shadow:0 0 0 1px var(--cy)}
+#msg{min-height:22px;font-size:14px;font-weight:600}
+.ok{color:var(--up)}.er{color:#fca5a5}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stats div{background:#0d1c38;border-radius:10px;padding:8px}
+.stats b{display:block;font-size:17px}
+.term{max-width:520px;margin:0 auto}
+details{margin:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px}
+summary{cursor:pointer;font-weight:700;color:var(--cy);min-height:32px}
+footer{padding:4px 14px 20px;color:var(--mute);font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>The Digital Trading Floor</h1>
+  <div class="sub">How Fintech Transformed the Stock Market</div>
+  <span class="badge">SIMULATED DATA · NOT REAL MARKET PRICES</span>
+</header>
+<div class="tabs">
+  <button class="tab on" id="t1" onclick="show(1)">Market Display</button>
+  <button class="tab" id="t2" onclick="show(2)">Trading Terminal</button>
+</div>
+<main>
+  <section id="v1">
+    <p class="hint">Tip: rotate your phone to landscape for the full display.</p>
+    <div class="grid" id="mk"></div>
+  </section>
+  <section id="v2" style="display:none">
+    <div class="term" id="tm"></div>
+  </section>
+</main>
+<details open>
+  <summary>Learn: UPI vs stock-trade settlement</summary>
+  <p><b>UPI</b> moves money between two bank accounts, usually within seconds. <b>Stock-trade settlement</b> is a separate process: after a trade is matched on an exchange, a clearing corporation arranges the transfer of shares and money between buyer and seller. In India, equity trades generally settle on the next working day (T+1). A UPI payment may fund a brokerage account, but it is not the same as settling a trade.</p>
+  <p>In this prototype every trade is instant and virtual. No money, bank, UPI or broker is involved.</p>
+</details>
+<footer>Educational demo for a school Commerce exhibition. All companies are fictional and all prices are randomly generated. This is not investment advice and shows no live market data.</footer>
+
+<script>
+const $=id=>document.getElementById(id);
+const fmt=n=>'₹'+n.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+const pct=n=>(n>=0?'+':'')+n.toFixed(2)+'%';
+const cl=n=>n>=0?'up':'dn';
+const S=[['ZNTH','Zenith Pay',420],['ORBX','Orbit Exchange',1180],['LUMI','Lumina Bank',760],['KRYP','Kryptis Systems',310],['VELO','Velocity Capital',955],['NIMB','Nimbus Cloud',540],['SOLR','Solaris Energy',225],['TERA','Terra Foods',640]].map(([s,n,p])=>({s,n,p,o:p,h:[p],v:0}));
+const IDX=[{id:'SIM Composite',m:[0,1,2,3,4,5,6,7]},{id:'SIM Fintech',m:[0,1,2,3]},{id:'SIM Core',m:[4,5,6,7]}];
+IDX.forEach(x=>x.base=x.m.reduce((a,i)=>a+S[i].o,0));
+const series=x=>S[0].h.map((_,k)=>x.m.reduce((a,i)=>a+S[i].h[k],0)/x.base*1000);
+const START=100000;
+let cash=START,hold={},log=[],feed=[],sel='ZNTH',cs='SIM Composite',view=1,msgT='',msgC='',paused=false,vol=0;
+
+function tick(seed){
+  S.forEach(s=>{s.p=Math.max(5,+(s.p*(1+(Math.random()-.5)*.014)).toFixed(2));s.h.push(s.p);if(s.h.length>60)s.h.shift();s.v+=Math.floor(Math.random()*900)});
+  if(!seed){
+    const s=S[Math.floor(Math.random()*S.length)],q=10+Math.floor(Math.random()*490),b=Math.random()<.5;
+    vol+=q;feed.unshift(`<span class="${b?'up':'dn'}">${b?'BUY':'SELL'}</span> ${q} ${s.s} @ ${fmt(s.p)}`);feed=feed.slice(0,7);
+  }
+}
+for(let i=0;i<30;i++)tick(true);
+
+function chart(arr){
+  const mn=Math.min(...arr),mx=Math.max(...arr),n=arr.length;
+  const pts=arr.map((v,i)=>(i/(n-1)*300).toFixed(1)+','+(130-(v-mn)/((mx-mn)||1)*110).toFixed(1)).join(' ');
+  const c=arr[n-1]>=arr[0]?'#22c55e':'#ef4444';
+  return `<svg viewBox="0 0 300 150" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="${c}" stroke-width="2.5" vector-effect="non-scaling-stroke"/></svg>`;
+}
+
+function renderM(){
+  const chg=S.map(s=>({...s,c:(s.p/s.o-1)*100}));
+  const srt=[...chg].sort((a,b)=>b.c-a.c);
+  const ix=IDX.map(x=>{const a=series(x),v=a[a.length-1];return {id:x.id,v,c:(v/1000-1)*100}});
+  const cur=IDX.find(x=>x.id===cs);
+  const ser=cur?series(cur):S.find(s=>s.s===cs).h;
+  const chips=[...IDX.map(x=>x.id),...S.map(s=>s.s)].map(id=>`<button class="chip ${id===cs?'on':''}" onclick="cs='${id}';renderM()">${id}</button>`).join('');
+  const li=a=>a.map(s=>`<div class="row"><span><span class="sym">${s.s}</span> <span class="nm">${s.n}</span></span><span class="num ${cl(s.c)}">${fmt(s.p)}<br>${pct(s.c)}</span></div>`).join('');
+  $('mk').innerHTML=`
+  <div class="card wide span2"><h2>Simulated indices</h2><div class="idx">${ix.map(i=>`<div><span class="nm">${i.id}</span><b class="${cl(i.c)}">${i.v.toFixed(1)}</b><span class="${cl(i.c)}">${pct(i.c)}</span></div>`).join('')}</div></div>
+  <div class="card wide"><h2>Market activity</h2><div class="feed">Simulated volume: <b style="color:var(--text)">${vol.toLocaleString('en-IN')}</b> shares<br>${feed.map(f=>`<div>${f}</div>`).join('')||'Waiting for orders…'}</div>
+  <button class="chip" style="margin-top:8px;width:100%" onclick="paused=!paused;renderM()">${paused?'▶ Resume simulation':'⏸ Pause simulation'}</button></div>
+  <div class="card span2"><h2>Price chart · ${cs} (simulated)</h2><div class="chips">${chips}</div>${chart(ser)}</div>
+  <div class="card"><h2>Top gainers</h2>${li(srt.slice(0,3))}<h2 style="margin-top:12px">Top losers</h2>${li(srt.slice(-3).reverse())}</div>
+  <div class="card wide span2"><h2>All stocks (simulated)</h2>${li(chg)}</div>`;
+}
+
+function holdVal(){return Object.keys(hold).reduce((a,k)=>a+hold[k].q*S.find(s=>s.s===k).p,0)}
+function renderT(){
+  const s=S.find(x=>x.s===sel),hv=holdVal(),pv=cash+hv,pl=pv-START;
+  const hk=Object.keys(hold);
+  const q=$('qty')?$('qty').value:'1';
+  $('tm').innerHTML=`
+  <div class="card" style="margin-bottom:12px"><h2>Virtual account</h2><div class="stats">
+    <div><span class="nm">Virtual cash</span><b>${fmt(cash)}</b></div>
+    <div><span class="nm">Portfolio value</span><b>${fmt(pv)}</b></div>
+    <div><span class="nm">Holdings value</span><b>${fmt(hv)}</b></div>
+    <div><span class="nm">Profit / loss</span><b class="${cl(pl)}">${fmt(pl)}</b></div></div></div>
+  <div class="card" style="margin-bottom:12px"><h2>Choose a company (fictional)</h2><div class="pick">${S.map(x=>`<button class="${x.s===sel?'on':''}" onclick="sel='${x.s}';renderT()"><span class="sym">${x.s}</span><br><span class="${cl(x.p-x.o)}">${fmt(x.p)}</span></button>`).join('')}</div></div>
+  <div class="card" style="margin-bottom:12px"><h2>Order · ${s.n}</h2>
+    <div style="font-size:24px;font-weight:800" class="${cl(s.p-s.o)}">${fmt(s.p)} <span style="font-size:14px">${pct((s.p/s.o-1)*100)}</span></div>
+    <div class="ctl"><button class="step" onclick="stp(-1)">−</button><input id="qty" type="number" inputmode="numeric" min="1" step="1" value="${q}" aria-label="Quantity"><button class="step" onclick="stp(1)">+</button></div>
+    <div class="ctl"><button class="buy" onclick="trade('BUY')">BUY</button><button class="sell" onclick="trade('SELL')">SELL</button></div>
+    <div id="msg" class="${msgC}">${msgT}</div></div>
+  <div class="card" style="margin-bottom:12px"><h2>Holdings</h2>${hk.length?hk.map(k=>{const h=hold[k],p=S.find(x=>x.s===k).p,g=(p-h.avg)*h.q;return `<div class="row"><span><span class="sym">${k}</span> × ${h.q}<br><span class="nm">Avg ${fmt(h.avg)}</span></span><span class="num ${cl(g)}">${fmt(p*h.q)}<br>${fmt(g)}</span></div>`}).join(''):'<span class="nm">No shares yet. Try a BUY.</span>'}</div>
+  <div class="card" style="margin-bottom:12px"><h2>Transaction history (simulated)</h2>${log.length?log.slice(0,12).map(l=>`<div class="row"><span><b class="${l.t==='BUY'?'up':'dn'}">${l.t}</b> ${l.q} ${l.s}<br><span class="nm">${l.at}</span></span><span class="num">${fmt(l.q*l.p)}<br><span class="nm">@ ${fmt(l.p)}</span></span></div>`).join(''):'<span class="nm">No trades yet.</span>'}</div>
+  <button class="reset" onclick="resetDemo()">Reset demo</button>`;
+}
+function stp(d){const i=$('qty');i.value=Math.max(1,(parseInt(i.value,10)||0)+d)}
+function say(t,ok){msgT=t;msgC=ok?'ok':'er';const m=$('msg');if(m){m.textContent=t;m.className=msgC}}
+function trade(side){
+  const q=Number($('qty').value),s=S.find(x=>x.s===sel);
+  if(!Number.isInteger(q)||q<1)return say('Enter a whole number of shares (1 or more).',0);
+  if(side==='BUY'){
+    const c=q*s.p;
+    if(c>cash+1e-9)return say(`Not enough virtual cash. Need ${fmt(c)}, you have ${fmt(cash)}.`,0);
+    cash-=c;const h=hold[s.s]||{q:0,avg:0};h.avg=(h.avg*h.q+c)/(h.q+q);h.q+=q;hold[s.s]=h;
+  }else{
+    const h=hold[s.s];
+    if(!h||q>h.q)return say(`You hold ${h?h.q:0} shares of ${s.s}, so you can’t sell ${q}.`,0);
+    cash+=q*s.p;h.q-=q;if(!h.q)delete hold[s.s];
+  }
+  log.unshift({t:side,q,s:s.s,p:s.p,at:new Date().toLocaleTimeString()});
+  say(`${side==='BUY'?'Bought':'Sold'} ${q} ${s.s} at ${fmt(s.p)} (simulated).`,1);
+  renderT();
+}
+function resetDemo(){cash=START;hold={};log=[];msgT='Demo reset. Virtual cash restored to '+fmt(START)+'.';msgC='ok';renderT()}
+function show(n){view=n;$('v1').style.display=n==1?'':'none';$('v2').style.display=n==2?'':'none';$('t1').className='tab'+(n==1?' on':'');$('t2').className='tab'+(n==2?' on':'');n==1?renderM():renderT()}
+setInterval(()=>{if(paused)return;tick();if(view==1)renderM();else if(!document.activeElement||document.activeElement.id!=='qty')renderT()},2000);
+renderM();renderT();
+</script>
+</body>
+</html>
