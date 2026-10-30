@@ -1,0 +1,416 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#080d18">
+<title>DTF | Trading Terminal</title>
+<style>
+:root{
+  --bg:#080d18;--panel:#101a2b;--line:#24354c;
+  --text:#edf3fc;--muted:#8b9bb2;
+  --cyan:#28c7df;--green:#19c784;--red:#f06470;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px system-ui,sans-serif}
+button,input{font:inherit}
+button{cursor:pointer}
+header{
+  padding:16px 20px;background:#0b1423;
+  border-bottom:1px solid var(--line);
+  display:flex;justify-content:space-between;align-items:center
+}
+.brand{font-weight:900;letter-spacing:2px}
+.brand span{color:var(--cyan)}
+.status{font-size:11px;color:var(--muted)}
+.layout{
+  max-width:1500px;margin:auto;padding:12px;
+  display:grid;grid-template-columns:230px 1fr 280px;gap:12px
+}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.heading{
+  padding:14px;border-bottom:1px solid var(--line);
+  font-size:11px;letter-spacing:1px;font-weight:800;color:#aebed2
+}
+.stock{
+  display:flex;justify-content:space-between;padding:12px;
+  border-bottom:1px solid #1c2b40;cursor:pointer
+}
+.stock.active{background:#14283b;border-left:3px solid var(--cyan)}
+.company{font-size:10px;color:var(--muted);margin-top:3px}
+.price{text-align:right;font-variant-numeric:tabular-nums}
+.up{color:var(--green)}.down{color:var(--red)}
+.quote{padding:18px;display:flex;justify-content:space-between;gap:10px}
+.quote h1{margin:5px 0;font-size:24px}
+.bigprice{font-size:28px;font-weight:850}
+.muted{color:var(--muted);font-size:11px}
+.chart{width:100%;height:220px;display:block;padding:10px}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px}
+.metric{background:#0b1423;padding:11px;border-radius:6px}
+.metric label{display:block;font-size:9px;color:var(--muted);margin-bottom:6px}
+.right{display:flex;flex-direction:column;gap:12px}
+.body{padding:14px}
+.tabs{display:flex;gap:6px}
+.tabs button{
+  flex:1;padding:10px;border:0;border-radius:5px;
+  background:#1a293e;color:var(--muted);font-weight:800
+}
+.tabs .selected{background:#124032;color:var(--green)}
+.field{margin-top:13px}
+.field label{display:block;color:var(--muted);font-size:10px;margin-bottom:6px}
+.field input{
+  width:100%;padding:11px;background:#091321;
+  border:1px solid var(--line);border-radius:5px;color:white
+}
+.total{display:flex;justify-content:space-between;margin:15px 0;font-size:12px;gap:8px}
+.execute{
+  width:100%;padding:14px;border:0;border-radius:5px;
+  background:var(--green);font-weight:900;color:#05251b
+}
+.execute.sell{background:var(--red);color:white}
+.table{width:100%;border-collapse:collapse;font-size:11px}
+.table th,.table td{padding:10px;text-align:left;border-bottom:1px solid #1c2b40}
+.table th{color:var(--muted);font-size:9px}
+.lower{margin-top:12px}
+.auth{max-width:380px;margin:12vh auto;padding:22px}
+.auth input{
+  width:100%;padding:12px;margin:7px 0;
+  background:#091321;border:1px solid var(--line);
+  color:white;border-radius:5px
+}
+.auth button{padding:12px;background:var(--cyan);border:0;border-radius:5px;font-weight:800}
+.hidden{display:none!important}
+.notice{padding:10px 14px;color:var(--muted);font-size:10px;border-top:1px solid var(--line)}
+@media(max-width:900px){
+ .layout{grid-template-columns:200px 1fr}
+ .right{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr}
+}
+@media(max-width:620px){
+ .layout{display:flex;flex-direction:column;padding:8px}
+ .chart{height:180px}
+ .quote h1{font-size:20px}
+ .bigprice{font-size:24px}
+ .right{display:flex}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand"><span>◈</span> DTF <small>TRADING TERMINAL</small></div>
+  <div class="status" id="connection">● SIMULATION MODE</div>
+</header>
+
+<div id="login" class="panel auth">
+  <h3>Operator Login</h3>
+  <p class="muted">Sign in using your Firebase operator account.</p>
+  <input id="email" type="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+  <button id="signIn">Sign in</button>
+  <p id="authMessage" class="muted"></p>
+</div>
+
+<div id="terminal" class="layout hidden">
+
+  <aside class="panel">
+    <div class="heading">MARKET WATCH · 8 STOCKS</div>
+    <div id="watchlist"></div>
+  </aside>
+
+  <main>
+    <section class="panel">
+      <div class="quote">
+        <div>
+          <div class="muted" id="company">Zenith Pay</div>
+          <h1 id="symbol">ZNTH</h1>
+          <div class="bigprice" id="price">₹420.00</div>
+          <div id="change" class="up">+0.00%</div>
+        </div>
+        <div class="muted">MARKET STATUS<br><b class="up">● SIMULATED</b></div>
+      </div>
+
+      <div class="heading">PRICE CHART · SIMULATED</div>
+      <svg id="chart" class="chart" viewBox="0 0 700 220" preserveAspectRatio="none"></svg>
+
+      <div class="metrics">
+        <div class="metric"><label>DAY HIGH</label><b id="high">—</b></div>
+        <div class="metric"><label>DAY LOW</label><b id="low">—</b></div>
+        <div class="metric"><label>VOLUME</label><b id="volume">—</b></div>
+      </div>
+      <div class="notice">All companies, prices and market data are fictional.</div>
+    </section>
+
+    <section class="panel lower">
+      <div class="heading">YOUR HOLDINGS</div>
+      <table class="table">
+        <thead>
+          <tr><th>STOCK</th><th>QTY</th><th>AVG PRICE</th><th>VALUE</th><th>P/L</th></tr>
+        </thead>
+        <tbody id="holdings">
+          <tr><td colspan="5">No holdings yet</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel lower">
+      <div class="heading">RECENT ORDERS</div>
+      <div id="orders" class="body muted">No orders yet.</div>
+    </section>
+  </main>
+
+  <aside class="right">
+    <section class="panel">
+      <div class="heading">PLACE ORDER</div>
+      <div class="body">
+        <div class="tabs">
+          <button id="buy" class="selected">BUY</button>
+          <button id="sell">SELL</button>
+        </div>
+
+        <div class="field">
+          <label>ORDER TYPE</label>
+          <input value="Market Order" disabled>
+        </div>
+
+        <div class="field">
+          <label>QUANTITY</label>
+          <input id="quantity" type="number" min="1" step="1" value="10">
+        </div>
+
+        <div class="total">
+          <span>Estimated value</span>
+          <b id="estimate">₹4,200.00</b>
+        </div>
+
+        <button id="execute" class="execute">BUY ZNTH</button>
+        <p id="tradeMessage" class="muted">Virtual money only. Educational simulation.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="heading">ACCOUNT SUMMARY</div>
+      <div class="body">
+        <div class="total"><span>Virtual cash</span><b id="cash">₹100,000.00</b></div>
+        <div class="total"><span>Portfolio value</span><b id="equity">₹100,000.00</b></div>
+        <div class="total"><span>Total P/L</span><b id="pnl">₹0.00</b></div>
+        <button id="logout">Sign out</button>
+      </div>
+    </section>
+  </aside>
+</div>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import {
+  getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut
+} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import {
+  getDatabase,ref,onValue
+} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBQnORGtDuUWdy3qsz5AHlgTLZycm6Mtuo",
+  authDomain: "digital-trading-floor.firebaseapp.com",
+  databaseURL: "https://digital-trading-floor-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "digital-trading-floor",
+  storageBucket: "digital-trading-floor.firebasestorage.app",
+  messagingSenderId: "669709977936",
+  appId: "1:669709977936:web:d85f53874bc7bf1fff4455",
+  measurementId: "G-RKJG3YTBHW"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+const $ = id => document.getElementById(id);
+const money = n => "₹" + Number(n).toLocaleString("en-IN", {
+  minimumFractionDigits:2,maximumFractionDigits:2
+});
+
+const stocks = [
+  ["ZNTH","Zenith Pay",420],
+  ["ORBX","Orbit Exchange",1180],
+  ["LUMI","Lumina Bank",760],
+  ["KRYP","Kryptis Systems",310],
+  ["VELO","Velocity Capital",955],
+  ["NIMB","Nimbus Cloud",540],
+  ["SOLR","Solaris Energy",225],
+  ["TERA","Terra Foods",640]
+].map(x => ({
+  symbol:x[0],name:x[1],price:x[2],open:x[2],
+  history:Array.from({length:35},(_,i)=>x[2]*(1+Math.sin(i/4)*.01))
+}));
+
+let selected = "ZNTH";
+let side = "BUY";
+let cash = 100000;
+let holdings = {};
+let orders = [];
+
+function draw(){
+  const s = stocks.find(x=>x.symbol===selected);
+  const pct = (s.price/s.open-1)*100;
+
+  $("company").textContent = s.name + " · Fictional equity";
+  $("symbol").textContent = s.symbol;
+  $("price").textContent = money(s.price);
+  $("change").textContent = (pct>=0?"+":"")+pct.toFixed(2)+"%";
+  $("change").className = pct>=0?"up":"down";
+
+  $("high").textContent = money(Math.max(...s.history));
+  $("low").textContent = money(Math.min(...s.history));
+  $("volume").textContent = (s.history.length*1837).toLocaleString("en-IN");
+
+  const min = Math.min(...s.history);
+  const max = Math.max(...s.history);
+  const points = s.history.map((v,i)=>[
+    i/(s.history.length-1)*700,
+    205-(v-min)/(max-min||1)*185
+  ]);
+
+  $("chart").innerHTML =
+    '<polyline points="'+points.map(p=>p.join(",")).join(" ")+
+    '" fill="none" stroke="#28c7df" stroke-width="3"/>';
+
+  $("watchlist").innerHTML = stocks.map(x=>
+    '<div class="stock '+(x.symbol===selected?"active":"")+'" data-symbol="'+x.symbol+'">'+
+    '<div><b>'+x.symbol+'</b><div class="company">'+x.name+'</div></div>'+
+    '<div class="price">'+money(x.price)+'<div class="'+
+    (x.price>=x.open?"up":"down")+'">'+
+    ((x.price/x.open-1)*100).toFixed(2)+'%</div></div></div>'
+  ).join("");
+
+  document.querySelectorAll(".stock").forEach(el=>{
+    el.onclick = ()=>{selected=el.dataset.symbol;draw()};
+  });
+
+  const qty = Number($("quantity").value)||0;
+  $("estimate").textContent = money(qty*s.price);
+  $("execute").textContent = side+" "+s.symbol;
+  $("execute").className = "execute"+(side==="SELL"?" sell":"");
+
+  const holdingsValue = Object.keys(holdings).reduce((total,k)=>
+    total+holdings[k].qty*stocks.find(s=>s.symbol===k).price,0);
+
+  $("cash").textContent = money(cash);
+  $("equity").textContent = money(cash+holdingsValue);
+  $("pnl").textContent = money(cash+holdingsValue-100000);
+
+  $("holdings").innerHTML = Object.keys(holdings).map(k=>{
+    const p=holdings[k],s=stocks.find(x=>x.symbol===k);
+    const pl=(s.price-p.avg)*p.qty;
+    return '<tr><td>'+k+'</td><td>'+p.qty+'</td><td>'+money(p.avg)+
+    '</td><td>'+money(s.price*p.qty)+'</td><td class="'+
+    (pl>=0?"up":"down")+'">'+money(pl)+'</td></tr>';
+  }).join("") || '<tr><td colspan="5">No holdings yet</td></tr>';
+
+  $("orders").innerHTML = orders.slice(0,6).map(o=>
+    '<div class="total"><span class="'+(o.side==="BUY"?"up":"down")+'">'+
+    o.side+' '+o.qty+' '+o.symbol+'</span><b>'+money(o.price)+'</b></div>'
+  ).join("") || "No orders yet.";
+}
+
+$("signIn").onclick = async()=>{
+  try{
+    await signInWithEmailAndPassword(
+      auth,$("email").value.trim(),$("password").value
+    );
+    $("authMessage").textContent = "Signed in.";
+  }catch(e){
+    $("authMessage").textContent = "Login failed: "+e.message;
+  }
+};
+
+onAuthStateChanged(auth,user=>{
+  if(user){
+    $("login").classList.add("hidden");
+    $("terminal").classList.remove("hidden");
+    $("connection").textContent = "● AUTHENTICATED · SIMULATION";
+
+    onValue(ref(db,"market/snapshot"),snap=>{
+      if(snap.exists()){
+        const data=snap.val();
+        (data.stocks||[]).forEach(remote=>{
+          const local=stocks.find(s=>s.symbol===remote.symbol);
+          if(local && Number.isFinite(remote.price)){
+            local.price=remote.price;
+            if(Array.isArray(remote.history)) local.history=remote.history;
+          }
+        });
+        draw();
+        $("connection").textContent = "● MARKET FEED CONNECTED";
+      }
+    },()=>{
+      $("connection").textContent = "● LOCAL SIMULATION · FEED LOCKED";
+    });
+  }else{
+    $("login").classList.remove("hidden");
+    $("terminal").classList.add("hidden");
+  }
+});
+
+$("buy").onclick = ()=>{
+  side="BUY";
+  $("buy").className="selected";
+  $("sell").className="";
+  draw();
+};
+
+$("sell").onclick = ()=>{
+  side="SELL";
+  $("sell").className="selected";
+  $("buy").className="";
+  draw();
+};
+
+$("quantity").oninput = draw;
+
+$("execute").onclick = ()=>{
+  const qty=Number($("quantity").value);
+  const s=stocks.find(x=>x.symbol===selected);
+  const p=holdings[selected]||{qty:0,avg:0};
+
+  if(!Number.isInteger(qty)||qty<1){
+    $("tradeMessage").textContent="Enter a valid whole-share quantity.";
+    return;
+  }
+
+  const value=qty*s.price;
+
+  if(side==="BUY" && value>cash){
+    $("tradeMessage").textContent="Insufficient virtual cash.";
+    return;
+  }
+
+  if(side==="SELL" && qty>p.qty){
+    $("tradeMessage").textContent="You do not own enough shares.";
+    return;
+  }
+
+  if(side==="BUY"){
+    cash-=value;
+    p.avg=(p.avg*p.qty+value)/(p.qty+qty);
+    p.qty+=qty;
+    holdings[selected]=p;
+  }else{
+    cash+=value;
+    p.qty-=qty;
+    if(p.qty===0) delete holdings[selected];
+  }
+
+  orders.unshift({
+    side,qty,symbol:selected,price:s.price,createdAt:Date.now()
+  });
+
+  $("tradeMessage").textContent =
+    "Simulated "+side.toLowerCase()+" order completed successfully.";
+  draw();
+};
+
+$("logout").onclick = ()=>signOut(auth);
+
+draw();
+</script>
+</body>
+</html>
